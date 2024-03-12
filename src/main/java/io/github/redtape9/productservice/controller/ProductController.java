@@ -1,10 +1,13 @@
 package io.github.redtape9.productservice.controller;
 
 import io.github.redtape9.productservice.dto.ProductRequest;
+import io.github.redtape9.productservice.dto.ProductResponse;
 import io.github.redtape9.productservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,4 +22,13 @@ public class ProductController {
         productService.createProduct(productRequest);
 
     }
+
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<ProductResponse> getAllProducts() {
+        return productService.getAllProducts();
+
+    }
+
+
 }
