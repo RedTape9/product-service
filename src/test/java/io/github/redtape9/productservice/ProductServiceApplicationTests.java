@@ -3,7 +3,9 @@ package io.github.redtape9.productservice;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.redtape9.productservice.dto.ProductRequest;
+import io.github.redtape9.productservice.repo.ProductRepository;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,9 @@ class ProductServiceApplicationTests {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     @BeforeAll
     static void setup() {
         mongoDBContainer.start();
@@ -49,16 +54,6 @@ class ProductServiceApplicationTests {
     static void setProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
     }
-    @Test
-    void shouldCreateProduct() throws Exception  {
-        ProductRequest productRequest = getProductRequest();
-        String productRequestString = objectMapper.writeValueAsString(productRequest);
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/product")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(productRequestString))
-                .andExpect(status().isCreated());
-
-    }
 
     private ProductRequest getProductRequest() {
         return ProductRequest.builder()
@@ -67,5 +62,30 @@ class ProductServiceApplicationTests {
                 .price(BigDecimal.valueOf(100))
                 .build();
     }
+
+    private void createProduct(ProductRequest productRequest) throws Exception {
+        String productRequestString = objectMapper.writeValueAsString(productRequest);
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/product")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(productRequestString))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldCreateProduct() throws Exception  {
+        ProductRequest productRequest = getProductRequest();
+        createProduct(productRequest);
+        Assertions.assertEquals(1, productRepository.findAll().size());
+    }
+
+    @Test
+    void shouldGetAllProducts() throws Exception {
+        ProductRequest productRequest = getProductRequest();
+        createProduct(productRequest);
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/product"))
+                .andExpect(status().isOk());
+    }
+
+
 
 }
